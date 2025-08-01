@@ -9,11 +9,89 @@ import io
 
 # Configure page
 st.set_page_config(
-    page_title="Singapore Wage Analysis Dashboard",
+    page_title="Singapore Wage Insights - Salary Trends & Analysis (2021-2024)",
     page_icon="💰",
     layout="wide",
-    initial_sidebar_state="auto"  # Changed to auto for better mobile experience
+    initial_sidebar_state="auto",  # Changed to auto for better mobile experience
+    menu_items={
+        'Get Help': 'https://singaporewage.com/help',
+        'Report a bug': "https://singaporewage.com/contact",
+        'About': "Singapore's premier wage analysis platform. Data sourced from official government statistics."
+    }
 )
+
+# SEO Meta Tags and Structured Data
+st.markdown("""
+<!-- SEO Meta Tags -->
+<meta name="description" content="Explore Singapore wage trends across occupations with interactive charts and data insights. Based on official government data (2021-2024).">
+<meta name="keywords" content="Singapore wages, salary trends, jobs, occupations, wage analysis, Singapore salary, income data, employment statistics, pay scale Singapore">
+<meta name="author" content="Singapore Wage Insights">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://singaporewage.com/">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://singaporewage.com/">
+<meta property="og:title" content="Singapore Wage Insights - Salary Trends & Analysis (2021-2024)">
+<meta property="og:description" content="Explore Singapore wage trends across occupations with interactive charts and data insights. Based on official government data.">
+<meta property="og:image" content="https://singaporewage.com/assets/singapore-wage-preview.png">
+<meta property="og:site_name" content="Singapore Wage Insights">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://singaporewage.com/">
+<meta property="twitter:title" content="Singapore Wage Insights - Salary Trends & Analysis">
+<meta property="twitter:description" content="Explore Singapore wage trends across occupations with interactive charts and data insights.">
+<meta property="twitter:image" content="https://singaporewage.com/assets/singapore-wage-preview.png">
+
+<!-- Structured Data - JSON-LD -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Singapore Wage Insights",
+    "alternateName": "SG Wage Analysis",
+    "url": "https://singaporewage.com/",
+    "description": "Singapore's premier platform for wage analysis and salary trends across all occupations",
+    "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://singaporewage.com/?search={search_term_string}",
+        "query-input": "required name=search_term_string"
+    }
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Singapore Wage Insights",
+    "url": "https://singaporewage.com/",
+    "logo": "https://singaporewage.com/assets/logo.png",
+    "description": "Comprehensive wage and salary analysis platform for Singapore",
+    "sameAs": [
+        "https://twitter.com/sgwageinsights",
+        "https://www.linkedin.com/company/singapore-wage-insights"
+    ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "DataCatalog",
+    "name": "Singapore Wage Database",
+    "description": "Comprehensive database of Singapore wages and salaries from 2021-2024",
+    "url": "https://singaporewage.com/",
+    "keywords": "wages, salaries, Singapore, employment, statistics",
+    "creator": {
+        "@type": "Organization",
+        "name": "Singapore Wage Insights"
+    },
+    "temporalCoverage": "2021/2024"
+}
+</script>
+""", unsafe_allow_html=True)
 
 # Custom CSS for responsive design
 st.markdown("""
@@ -339,11 +417,12 @@ def create_wage_chart(data_list, wage_type, comparison_mode=False):
     return fig
 
 def main():
-    # Responsive header with logo and title
+    # SEO-optimized header with proper heading hierarchy
     st.markdown("""
     <div class="main-header">
-        <h1>💰 Singapore Wage Analysis Dashboard</h1>
-        <p>Explore wage trends across occupations and industries from 2021 to 2024</p>
+        <h1>💰 Singapore Wage Insights - Comprehensive Salary Analysis</h1>
+        <p class="lead">Explore wage trends across occupations and industries from 2021 to 2024. 
+        Data sourced from official Singapore government statistics.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -469,7 +548,7 @@ def main():
                 st.markdown("---")
     
     # Year-over-year growth section
-    st.subheader("📈 Year-over-Year Growth Rates")
+    st.markdown("## 📈 Year-over-Year Salary Growth Rates")
     
     growth_tabs = st.tabs([occ for occ, _ in data_list])
     
@@ -490,7 +569,7 @@ def main():
                 st.info("Insufficient data for growth calculation")
     
     # Data table section
-    st.subheader("📋 Raw Data")
+    st.markdown("## 📋 Detailed Wage Data Table")
     
     data_tabs = st.tabs([occ for occ, _ in data_list])
     
@@ -511,7 +590,7 @@ def main():
             st.dataframe(display_df, use_container_width=True, hide_index=True)
     
     # Download section
-    st.subheader("💾 Download Options")
+    st.markdown("## 💾 Download Salary Data")
     
     # Responsive download columns - will stack on mobile via CSS
     col1, col2 = st.columns(2)
@@ -548,6 +627,29 @@ def main():
                 file_name=f"wage_chart_{selected_industry.replace(' ', '_')}_{wage_type}.png",
                 mime="image/png"
             )
+    
+    # SEO Footer with navigation links for AdSense compliance
+    st.markdown("---")
+    st.markdown("""
+    <footer style="text-align: center; padding: 2rem 0; color: #666;">
+        <nav style="margin-bottom: 1rem;">
+            <a href="https://singaporewage.com" style="margin: 0 1rem;">Home</a>
+            <a href="https://singaporewage.com/privacy" style="margin: 0 1rem;">Privacy Policy</a>
+            <a href="https://singaporewage.com/terms" style="margin: 0 1rem;">Terms of Service</a>
+            <a href="https://singaporewage.com/about" style="margin: 0 1rem;">About Us</a>
+            <a href="https://singaporewage.com/contact" style="margin: 0 1rem;">Contact</a>
+        </nav>
+        <p style="margin: 0.5rem 0;">
+            Data Source: Official Singapore Government Statistics (2021-2024)
+        </p>
+        <p style="margin: 0.5rem 0;">
+            © 2024 Singapore Wage Insights. All rights reserved.
+        </p>
+        <p style="margin: 0.5rem 0; font-size: 0.8rem;">
+            Singapore Wage Insights is an independent platform and is not affiliated with any government agency.
+        </p>
+    </footer>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
