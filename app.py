@@ -12,20 +12,168 @@ st.set_page_config(
     page_title="Singapore Wage Analysis Dashboard",
     page_icon="💰",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="auto"  # Changed to auto for better mobile experience
 )
 
-# Custom CSS for better styling
+# Custom CSS for responsive design
 st.markdown("""
 <style>
+    /* Base styles */
     .stMetric {
         background-color: #f0f2f6;
         padding: 15px;
         border-radius: 10px;
         margin: 5px;
     }
+    
     .main > div {
         padding-top: 2rem;
+    }
+    
+    /* Responsive header styles */
+    .main-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .main-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .main-header p {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 1rem;
+    }
+    
+    /* Mobile responsiveness - 320px to 768px */
+    @media (max-width: 768px) {
+        .main > div {
+            padding-top: 1rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .main-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .main-header p {
+            font-size: 1rem;
+        }
+        
+        .stMetric {
+            padding: 10px;
+            margin: 3px;
+        }
+        
+        /* Force sidebar to collapse on mobile */
+        .css-1d391kg {
+            width: 100%;
+        }
+        
+        /* Make selectboxes full width */
+        .stSelectbox > div > div {
+            width: 100% !important;
+        }
+        
+        /* Stack columns on mobile */
+        .row-widget.stHorizontal {
+            flex-direction: column;
+        }
+        
+        .row-widget.stHorizontal > div {
+            width: 100% !important;
+            margin-bottom: 1rem;
+        }
+        
+        /* Responsive table container */
+        .dataframe {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        /* Chart responsiveness */
+        .js-plotly-plot {
+            width: 100% !important;
+            height: auto !important;
+        }
+        
+        /* Mobile-specific spacing */
+        .element-container {
+            margin-bottom: 1rem;
+        }
+    }
+    
+    /* Tablet responsiveness - 768px to 1024px */
+    @media (min-width: 768px) and (max-width: 1024px) {
+        .main > div {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+        
+        .main-header h1 {
+            font-size: 2.2rem;
+        }
+        
+        .stMetric {
+            padding: 12px;
+        }
+    }
+    
+    /* Desktop styles - 1024px and up */
+    @media (min-width: 1024px) {
+        .main-header h1 {
+            font-size: 2.5rem;
+        }
+    }
+    
+    /* Ensure tables don't overflow */
+    .stDataFrame {
+        width: 100%;
+        overflow-x: auto;
+    }
+    
+    .stDataFrame table {
+        min-width: 100%;
+        width: max-content;
+    }
+    
+    /* Button responsiveness */
+    .stButton > button {
+        width: 100% !important;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Download section responsiveness */
+    @media (max-width: 768px) {
+        .stButton > button {
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+        }
+    }
+    
+    /* Plotly chart container fix */
+    .user-select-none {
+        width: 100% !important;
+    }
+    
+    /* Mobile-specific adjustments */
+    @media (max-width: 480px) {
+        .main-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .main-header p {
+            font-size: 0.9rem;
+        }
+        
+        .stTabs [data-baseweb="tab"] {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -191,8 +339,13 @@ def create_wage_chart(data_list, wage_type, comparison_mode=False):
     return fig
 
 def main():
-    st.title("💰 Singapore Wage Analysis Dashboard")
-    st.markdown("Explore wage trends across occupations and industries from 2021 to 2024")
+    # Responsive header with logo and title
+    st.markdown("""
+    <div class="main-header">
+        <h1>💰 Singapore Wage Analysis Dashboard</h1>
+        <p>Explore wage trends across occupations and industries from 2021 to 2024</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Load data
     with st.spinner("Loading wage data..."):
@@ -263,7 +416,13 @@ def main():
             st.error("No data available for the selected combination(s).")
         return
     
-    # Main content area
+    # Responsive main content area
+    # Use container to control responsive behavior
+    chart_container = st.container()
+    insights_container = st.container()
+    
+    # On desktop: side-by-side, on mobile: stacked
+    # Create responsive columns based on screen size via CSS
     col1, col2 = st.columns([3, 1])
     
     with col1:
@@ -354,6 +513,7 @@ def main():
     # Download section
     st.subheader("💾 Download Options")
     
+    # Responsive download columns - will stack on mobile via CSS
     col1, col2 = st.columns(2)
     
     with col1:
