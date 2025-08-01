@@ -224,13 +224,15 @@ def main():
             return
     else:
         # Single select with search
-        occupations = get_unique_occupations(df)
+        occupations = ["-- Select an occupation --"] + get_unique_occupations(df)
         selected_occupation = st.sidebar.selectbox(
             "Choose an occupation",
             options=occupations,
+            index=0,  # Start with placeholder selected
             help="Type to search for occupations"
         )
-        selected_occupations = [selected_occupation] if selected_occupation else []
+        # Only proceed if actual occupation selected (not placeholder)
+        selected_occupations = [selected_occupation] if selected_occupation and selected_occupation != "-- Select an occupation --" else []
     
     # Industry selection
     industries = get_industries()
@@ -255,7 +257,10 @@ def main():
             data_list.append((occupation, filtered_df))
     
     if not data_list:
-        st.error("No data available for the selected combination(s).")
+        if not selected_occupations:
+            st.info("👆 Please select an occupation from the dropdown above to view wage data.")
+        else:
+            st.error("No data available for the selected combination(s).")
         return
     
     # Main content area
