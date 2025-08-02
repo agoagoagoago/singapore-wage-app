@@ -20,12 +20,13 @@ st.set_page_config(
     }
 )
 
+# Add Fathom Analytics to head
+st.components.v1.html("""
+<script src="https://cdn.usefathom.com/script.js" data-site="PXWBXBYI" defer></script>
+""", height=0)
+
 # SEO Meta Tags and Structured Data
 st.markdown("""
-<!-- Fathom - beautiful, simple website analytics -->
-<script src="https://cdn.usefathom.com/script.js" data-site="PXWBXBYI" defer></script>
-<!-- / Fathom -->
-
 <!-- SEO Meta Tags -->
 <meta name="description" content="Explore Singapore wage trends across occupations with interactive charts and data insights. Based on official government data (2021-2024).">
 <meta name="keywords" content="Singapore wages, salary trends, jobs, occupations, wage analysis, Singapore salary, income data, employment statistics, pay scale Singapore">
