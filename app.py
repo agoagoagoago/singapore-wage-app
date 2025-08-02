@@ -253,6 +253,99 @@ st.markdown("""
             padding: 0.3rem 0.6rem;
         }
     }
+    
+    /* Support Section Styles */
+    .support-section {
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+        padding: 3rem 2rem;
+        margin: 2rem 0;
+        border-radius: 15px;
+        text-align: center;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .support-section h2 {
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .support-section p {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        color: #ecf0f1;
+        line-height: 1.6;
+    }
+    
+    .coffee-button {
+        display: inline-block;
+        background: linear-gradient(45deg, #f39c12, #e67e22);
+        color: #2c3e50 !important;
+        padding: 15px 30px;
+        border-radius: 50px;
+        text-decoration: none !important;
+        font-weight: bold;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
+        border: none;
+        cursor: pointer;
+    }
+    
+    .coffee-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(243, 156, 18, 0.6);
+        background: linear-gradient(45deg, #e67e22, #d35400);
+        color: #2c3e50 !important;
+        text-decoration: none !important;
+    }
+    
+    .coffee-button:active {
+        transform: translateY(0);
+    }
+    
+    /* Responsive support section */
+    @media (max-width: 768px) {
+        .support-section {
+            padding: 2rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .support-section h2 {
+            font-size: 1.8rem;
+        }
+        
+        .support-section p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .coffee-button {
+            padding: 12px 25px;
+            font-size: 1rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .support-section {
+            padding: 2rem 1rem;
+        }
+        
+        .support-section h2 {
+            font-size: 1.6rem;
+        }
+        
+        .support-section p {
+            font-size: 0.9rem;
+        }
+        
+        .coffee-button {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -627,6 +720,17 @@ def main():
                 file_name=f"wage_chart_{selected_industry.replace(' ', '_')}_{wage_type}.png",
                 mime="image/png"
             )
+    
+    # Support Section
+    st.markdown("""
+    <div class="support-section">
+        <h2>☕ Support This Project</h2>
+        <p>If you find these tools helpful, consider buying me a coffee!</p>
+        <a href="https://buymeacoffee.com/adrian_goh" target="_blank" class="coffee-button">
+            ☕ Buy Me a Coffee
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
     
     # SEO Footer with navigation links for AdSense compliance
     st.markdown("---")
