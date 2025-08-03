@@ -129,7 +129,7 @@ st.set_page_config(
 # SEO Meta Tags and Structured Data
 st.markdown("""
 <!-- SEO Meta Tags -->
-<meta name="description" content="Explore Singapore wage trends across occupations with interactive charts and data insights. Based on official government data (2021-2024).">
+<meta name="description" content="Explore Singapore wage trends across occupations with interactive charts and data insights. Based on official government data (2021-2024). Contact us at admin@singaporewage.com for support.">
 <meta name="keywords" content="Singapore wages, salary trends, jobs, occupations, wage analysis, Singapore salary, income data, employment statistics, pay scale Singapore">
 <meta name="author" content="Singapore Wage Insights">
 <meta name="robots" content="index, follow">
@@ -450,6 +450,47 @@ st.markdown("""
         .coffee-button {
             padding: 10px 20px;
             font-size: 0.9rem;
+        }
+    }
+    
+    /* Footer responsive styles */
+    footer nav {
+        flex-wrap: wrap;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    footer nav a {
+        margin: 0.2rem 0.5rem;
+        padding: 0.3rem;
+        text-decoration: none;
+        color: #0066cc;
+    }
+    
+    footer nav a:hover {
+        text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) {
+        footer {
+            padding: 1.5rem 1rem !important;
+        }
+        
+        footer nav {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        footer nav a {
+            margin: 0.1rem 0;
+            display: block;
+            text-align: center;
+        }
+        
+        footer p {
+            font-size: 0.85rem !important;
+            margin: 0.3rem 0 !important;
         }
     }
 </style>
@@ -891,6 +932,9 @@ def main():
         <h1>💰 Singapore Wage Insights - Comprehensive Salary Analysis</h1>
         <p class="lead">Explore wage trends across occupations and industries from 2021 to 2024. 
         Data sourced from official Singapore government statistics.</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+            💬 Questions or feedback? Contact us at <a href="mailto:admin@singaporewage.com" style="color: #0066cc;">admin@singaporewage.com</a>
+        </p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -1151,6 +1195,9 @@ def main():
             <a href="https://singaporewage.com/about" style="margin: 0 1rem;">About Us</a>
             <a href="https://singaporewage.com/contact" style="margin: 0 1rem;">Contact</a>
         </nav>
+        <p style="margin: 0.5rem 0;">
+            Contact us: <a href="mailto:admin@singaporewage.com" style="color: #0066cc; text-decoration: none;">admin@singaporewage.com</a>
+        </p>
         <p style="margin: 0.5rem 0;">
             Data Source: Official Singapore Government Statistics (2021-2024)
         </p>
