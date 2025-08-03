@@ -60,3 +60,6 @@ Key DataFrame columns after processing:
 - Year, Industry, SSOC_Code, Occupation
 - Basic_P25, Basic_Median, Basic_P75
 - Gross_P25, Gross_Median, Gross_P75
+
+# Repository Etiquette
+After making any code changes or completing a task, always commit the changes and then push them to the remote GitHub repository.
