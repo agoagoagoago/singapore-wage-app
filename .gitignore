@@ -120,3 +120,6 @@ dmypy.json
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Analytics data
+analytics_data.json

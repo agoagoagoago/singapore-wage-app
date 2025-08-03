@@ -7,6 +7,10 @@ import numpy as np
 from data_loader import load_all_wage_data, get_industries
 import io
 import streamlit_analytics
+import json
+import os
+from datetime import datetime
+from collections import Counter
 
 # Configure page
 st.set_page_config(
@@ -511,9 +515,230 @@ def create_wage_chart(data_list, wage_type, comparison_mode=False):
     
     return fig
 
+def show_analytics_dashboard():
+    """Display custom analytics dashboard for admin users."""
+    st.title("📊 Singapore Wage App Analytics Dashboard")
+    st.markdown("---")
+    
+    # Check for analytics data file
+    if not os.path.exists("analytics_data.json"):
+        st.warning("No analytics data available yet. Start using the app to generate data.")
+        return
+    
+    # Load analytics data
+    try:
+        with open("analytics_data.json", "r") as f:
+            analytics_data = json.load(f)
+    except Exception as e:
+        st.error(f"Error loading analytics data: {e}")
+        return
+    
+    # Overview metrics
+    col1, col2, col3, col4 = st.columns(4)
+    
+    # Calculate total interactions
+    total_interactions = sum(analytics_data.get("counts", {}).values())
+    
+    with col1:
+        st.metric("Total Page Views", analytics_data.get("total_pageviews", 0))
+    with col2:
+        st.metric("Total Interactions", total_interactions)
+    with col3:
+        st.metric("Unique Widgets Used", len(analytics_data.get("counts", {})))
+    with col4:
+        # Calculate average interactions per session
+        avg_interactions = total_interactions / max(analytics_data.get("total_pageviews", 1), 1)
+        st.metric("Avg Interactions/Session", f"{avg_interactions:.1f}")
+    
+    st.markdown("---")
+    
+    # Create two columns for charts
+    col_left, col_right = st.columns(2)
+    
+    with col_left:
+        # Widget usage statistics
+        st.subheader("📈 Widget Usage Statistics")
+        counts = analytics_data.get("counts", {})
+        if counts:
+            # Process widget data
+            widget_df = pd.DataFrame(list(counts.items()), columns=['Widget', 'Count'])
+            widget_df = widget_df.sort_values('Count', ascending=True).tail(15)
+            
+            # Create horizontal bar chart
+            fig_widgets = px.bar(
+                widget_df, 
+                x='Count', 
+                y='Widget', 
+                orientation='h',
+                title="Top 15 Most Used Features",
+                color='Count',
+                color_continuous_scale='Blues'
+            )
+            fig_widgets.update_layout(height=600, showlegend=False)
+            st.plotly_chart(fig_widgets, use_container_width=True)
+        else:
+            st.info("No widget interaction data available yet.")
+    
+    with col_right:
+        # Occupation selection analysis
+        st.subheader("🔍 Popular Occupations")
+        
+        # Extract occupation selections from widget data
+        occupation_data = {}
+        for widget, count in counts.items():
+            if "Choose an occupation" in widget or "Choose up to 3 occupations" in widget:
+                # Try to extract occupation name from widget string
+                if " - " in widget:
+                    parts = widget.split(" - ")
+                    if len(parts) > 1:
+                        occupation = parts[1].strip()
+                        if occupation and occupation != "-- Select an occupation --":
+                            occupation_data[occupation] = occupation_data.get(occupation, 0) + count
+        
+        if occupation_data:
+            # Get top 10 occupations
+            top_occupations = dict(sorted(occupation_data.items(), key=lambda x: x[1], reverse=True)[:10])
+            occ_df = pd.DataFrame(list(top_occupations.items()), columns=['Occupation', 'Selections'])
+            
+            # Create pie chart
+            fig_occ = px.pie(
+                occ_df, 
+                values='Selections', 
+                names='Occupation',
+                title="Top 10 Selected Occupations"
+            )
+            fig_occ.update_traces(textposition='inside', textinfo='percent+label')
+            fig_occ.update_layout(height=600)
+            st.plotly_chart(fig_occ, use_container_width=True)
+        else:
+            st.info("No occupation selection data available yet.")
+    
+    st.markdown("---")
+    
+    # Additional insights
+    col_insights1, col_insights2 = st.columns(2)
+    
+    with col_insights1:
+        st.subheader("💡 Feature Usage Insights")
+        
+        # Analyze feature usage
+        comparison_mode_count = 0
+        basic_wage_count = 0
+        gross_wage_count = 0
+        csv_downloads = 0
+        png_downloads = 0
+        
+        for widget, count in counts.items():
+            if "Enable Comparison Mode" in widget:
+                comparison_mode_count += count
+            elif "Select Wage Type - Basic" in widget:
+                basic_wage_count += count
+            elif "Select Wage Type - Gross" in widget:
+                gross_wage_count += count
+            elif "Download Data as CSV" in widget:
+                csv_downloads += count
+            elif "Download Chart as PNG" in widget:
+                png_downloads += count
+        
+        # Display insights
+        st.metric("Comparison Mode Used", comparison_mode_count)
+        
+        wage_type_data = {
+            'Wage Type': ['Basic', 'Gross'],
+            'Selections': [basic_wage_count, gross_wage_count]
+        }
+        if basic_wage_count > 0 or gross_wage_count > 0:
+            wage_df = pd.DataFrame(wage_type_data)
+            fig_wage = px.bar(
+                wage_df, 
+                x='Wage Type', 
+                y='Selections',
+                title="Wage Type Preferences",
+                color='Wage Type',
+                color_discrete_map={'Basic': '#3498db', 'Gross': '#e74c3c'}
+            )
+            st.plotly_chart(fig_wage, use_container_width=True)
+    
+    with col_insights2:
+        st.subheader("📥 Download Statistics")
+        
+        download_data = {
+            'Download Type': ['CSV Data', 'PNG Chart'],
+            'Count': [csv_downloads, png_downloads]
+        }
+        
+        if csv_downloads > 0 or png_downloads > 0:
+            download_df = pd.DataFrame(download_data)
+            fig_download = px.pie(
+                download_df,
+                values='Count',
+                names='Download Type',
+                title="Download Preferences"
+            )
+            fig_download.update_traces(textposition='inside', textinfo='percent+value')
+            st.plotly_chart(fig_download, use_container_width=True)
+        else:
+            st.info("No downloads recorded yet.")
+        
+        # Industry selection analysis
+        st.subheader("🏢 Popular Industries")
+        industry_data = {}
+        for widget, count in counts.items():
+            if "Select Industry" in widget and " - " in widget:
+                parts = widget.split(" - ")
+                if len(parts) > 1:
+                    industry = parts[1].strip()
+                    if industry:
+                        industry_data[industry] = industry_data.get(industry, 0) + count
+        
+        if industry_data:
+            top_industries = dict(sorted(industry_data.items(), key=lambda x: x[1], reverse=True)[:5])
+            ind_df = pd.DataFrame(list(top_industries.items()), columns=['Industry', 'Selections'])
+            
+            fig_ind = px.bar(
+                ind_df,
+                x='Industry',
+                y='Selections',
+                title="Top 5 Selected Industries",
+                color='Selections',
+                color_continuous_scale='Viridis'
+            )
+            fig_ind.update_layout(showlegend=False)
+            st.plotly_chart(fig_ind, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # Raw data view
+    with st.expander("📋 View Raw Analytics Data"):
+        st.json(analytics_data)
+        
+        # Download analytics data
+        analytics_json = json.dumps(analytics_data, indent=2)
+        st.download_button(
+            label="Download Analytics Data (JSON)",
+            data=analytics_json,
+            file_name=f"wage_app_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            mime="application/json"
+        )
+
 def main():
-    # Track analytics for the entire app
-    with streamlit_analytics.track():
+    # Check for admin parameter
+    query_params = st.query_params
+    if query_params.get("admin") == "true":
+        # Show analytics dashboard with password protection
+        password = st.text_input("Enter Admin Password", type="password")
+        if password == "wage_admin_2024":
+            show_analytics_dashboard()
+            return
+        elif password:
+            st.error("Invalid password!")
+            return
+        else:
+            st.info("Please enter the admin password to view analytics.")
+            return
+    
+    # Track analytics for the entire app with JSON storage
+    with streamlit_analytics.track(save_to_json="analytics_data.json", unsafe_password="wage_admin_2024"):
         # SEO-optimized header with proper heading hierarchy
         st.markdown("""
         <div class="main-header">
@@ -755,6 +980,9 @@ def main():
             </p>
             <p style="margin: 0.5rem 0; font-size: 0.8rem;">
                 Singapore Wage Insights is an independent platform and is not affiliated with any government agency.
+            </p>
+            <p style="margin: 0.5rem 0; font-size: 0.7rem;">
+                <a href="?admin=true" style="color: #999; text-decoration: none;">📊</a>
             </p>
         </footer>
         """, unsafe_allow_html=True)
