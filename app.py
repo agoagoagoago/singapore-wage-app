@@ -6,6 +6,7 @@ from plotly.subplots import make_subplots
 import numpy as np
 from data_loader import load_all_wage_data, get_industries
 import io
+import streamlit_analytics
 
 # Configure page
 st.set_page_config(
@@ -20,25 +21,6 @@ st.set_page_config(
     }
 )
 
-# Add Fathom Analytics with full HTML structure
-st.components.v1.html("""
-<!DOCTYPE html>
-<html>
-<head>
-    <script src="https://cdn.usefathom.com/script.js" data-site="PXWBXBYI" defer></script>
-</head>
-<body>
-    <script>
-        // Ensure Fathom loads even in iframe context
-        window.addEventListener('load', function() {
-            if (window.fathom) {
-                window.fathom('trackPageview');
-            }
-        });
-    </script>
-</body>
-</html>
-""", height=0)
 
 # SEO Meta Tags and Structured Data
 st.markdown("""
@@ -530,250 +512,252 @@ def create_wage_chart(data_list, wage_type, comparison_mode=False):
     return fig
 
 def main():
-    # SEO-optimized header with proper heading hierarchy
-    st.markdown("""
-    <div class="main-header">
-        <h1>💰 Singapore Wage Insights - Comprehensive Salary Analysis</h1>
-        <p class="lead">Explore wage trends across occupations and industries from 2021 to 2024. 
-        Data sourced from official Singapore government statistics.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Load data
-    with st.spinner("Loading wage data..."):
-        df = load_data()
-    
-    # Sidebar filters
-    st.sidebar.header("🔍 Filters")
-    
-    # Comparison mode toggle
-    comparison_mode = st.sidebar.checkbox("Enable Comparison Mode", value=False)
-    
-    # Occupation selection
-    st.sidebar.subheader("Select Occupation(s)")
-    
-    if comparison_mode:
-        # Multi-select for comparison
-        search_term = st.sidebar.text_input("Search occupations", "")
-        filtered_occupations = filter_occupations(df, search_term)
+    # Track analytics for the entire app
+    with streamlit_analytics.track():
+        # SEO-optimized header with proper heading hierarchy
+        st.markdown("""
+        <div class="main-header">
+            <h1>💰 Singapore Wage Insights - Comprehensive Salary Analysis</h1>
+            <p class="lead">Explore wage trends across occupations and industries from 2021 to 2024. 
+            Data sourced from official Singapore government statistics.</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        selected_occupations = st.sidebar.multiselect(
-            "Choose up to 3 occupations",
-            options=filtered_occupations,
-            max_selections=3,
-            help="Select occupations to compare"
-        )
+        # Load data
+        with st.spinner("Loading wage data..."):
+            df = load_data()
         
-        if not selected_occupations:
-            st.warning("Please select at least one occupation to view data.")
-            return
-    else:
-        # Single select with search
-        occupations = ["-- Select an occupation --"] + get_unique_occupations(df)
-        selected_occupation = st.sidebar.selectbox(
-            "Choose an occupation",
-            options=occupations,
-            index=0,  # Start with placeholder selected
-            help="Type to search for occupations"
-        )
-        # Only proceed if actual occupation selected (not placeholder)
-        selected_occupations = [selected_occupation] if selected_occupation and selected_occupation != "-- Select an occupation --" else []
-    
-    # Industry selection
-    industries = get_industries()
-    selected_industry = st.sidebar.selectbox(
+        # Sidebar filters
+        st.sidebar.header("🔍 Filters")
+        
+        # Comparison mode toggle
+        comparison_mode = st.sidebar.checkbox("Enable Comparison Mode", value=False)
+        
+        # Occupation selection
+        st.sidebar.subheader("Select Occupation(s)")
+        
+        if comparison_mode:
+            # Multi-select for comparison
+            search_term = st.sidebar.text_input("Search occupations", "")
+            filtered_occupations = filter_occupations(df, search_term)
+            
+            selected_occupations = st.sidebar.multiselect(
+                "Choose up to 3 occupations",
+                options=filtered_occupations,
+                max_selections=3,
+                help="Select occupations to compare"
+            )
+            
+            if not selected_occupations:
+                st.warning("Please select at least one occupation to view data.")
+                return
+        else:
+            # Single select with search
+            occupations = ["-- Select an occupation --"] + get_unique_occupations(df)
+            selected_occupation = st.sidebar.selectbox(
+                "Choose an occupation",
+                options=occupations,
+                index=0,  # Start with placeholder selected
+                help="Type to search for occupations"
+            )
+            # Only proceed if actual occupation selected (not placeholder)
+            selected_occupations = [selected_occupation] if selected_occupation and selected_occupation != "-- Select an occupation --" else []
+        
+        # Industry selection
+        industries = get_industries()
+        selected_industry = st.sidebar.selectbox(
         "Select Industry",
         options=industries,
         index=0
     )
     
-    # Wage type toggle
-    wage_type = st.sidebar.radio(
+        # Wage type toggle
+        wage_type = st.sidebar.radio(
         "Select Wage Type",
         options=['Basic', 'Gross'],
         index=0
     )
     
-    # Filter data for selected occupation(s) and industry
-    data_list = []
-    for occupation in selected_occupations:
-        filtered_df = df[(df['Occupation'] == occupation) & (df['Industry'] == selected_industry)]
-        if not filtered_df.empty:
-            data_list.append((occupation, filtered_df))
+        # Filter data for selected occupation(s) and industry
+        data_list = []
+        for occupation in selected_occupations:
+            filtered_df = df[(df['Occupation'] == occupation) & (df['Industry'] == selected_industry)]
+            if not filtered_df.empty:
+                data_list.append((occupation, filtered_df))
     
-    if not data_list:
-        if not selected_occupations:
-            st.info("👆 Please select an occupation from the dropdown above to view wage data.")
-        else:
-            st.error("No data available for the selected combination(s).")
-        return
-    
-    # Responsive main content area
-    # Use container to control responsive behavior
-    chart_container = st.container()
-    insights_container = st.container()
-    
-    # On desktop: side-by-side, on mobile: stacked
-    # Create responsive columns based on screen size via CSS
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        # Display chart
-        fig = create_wage_chart(data_list, wage_type, comparison_mode)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        # Key insights
-        st.subheader("📊 Key Insights")
-        
-        # Latest year data
-        latest_year = df['Year'].max()
-        
-        for occupation, occ_df in data_list:
-            if comparison_mode and len(data_list) > 1:
-                st.markdown(f"**{occupation}**")
-            
-            latest_data = occ_df[occ_df['Year'] == latest_year]
-            
-            if not latest_data.empty:
-                wage_suffix = '_Basic' if wage_type == 'Basic' else '_Gross'
-                
-                # Wage gap indicator
-                p75 = latest_data[f'P75{wage_suffix}'].iloc[0]
-                p25 = latest_data[f'P25{wage_suffix}'].iloc[0]
-                median = latest_data[f'Median{wage_suffix}'].iloc[0]
-                
-                if pd.notna(p75) and pd.notna(p25):
-                    wage_gap = p75 - p25
-                    st.metric(
-                        f"Wage Gap ({latest_year})",
-                        f"${wage_gap:,.0f}",
-                        help="Difference between 75th and 25th percentile"
-                    )
-                
-                if pd.notna(median):
-                    st.metric(
-                        f"Median ({latest_year})",
-                        f"${median:,.0f}"
-                    )
-            
-            if comparison_mode and len(data_list) > 1:
-                st.markdown("---")
-    
-    # Year-over-year growth section
-    st.markdown("## 📈 Year-over-Year Salary Growth Rates")
-    
-    growth_tabs = st.tabs([occ for occ, _ in data_list])
-    
-    for idx, (occupation, occ_df) in enumerate(data_list):
-        with growth_tabs[idx]:
-            growth_df = calculate_yoy_growth(occ_df)
-            
-            if growth_df is not None and not growth_df.empty:
-                # Format the dataframe for display
-                display_df = growth_df.copy()
-                for col in ['Basic Wage Growth (%)', 'Gross Wage Growth (%)']:
-                    display_df[col] = display_df[col].apply(
-                        lambda x: f"{x:.1f}%" if pd.notna(x) else "N/A"
-                    )
-                
-                st.dataframe(display_df, use_container_width=True, hide_index=True)
+        if not data_list:
+            if not selected_occupations:
+                st.info("👆 Please select an occupation from the dropdown above to view wage data.")
             else:
-                st.info("Insufficient data for growth calculation")
+                st.error("No data available for the selected combination(s).")
+            return
     
-    # Data table section
-    st.markdown("## 📋 Detailed Wage Data Table")
-    
-    data_tabs = st.tabs([occ for occ, _ in data_list])
-    
-    for idx, (occupation, occ_df) in enumerate(data_list):
-        with data_tabs[idx]:
-            # Prepare display dataframe
-            display_cols = ['Year', 'P25_Basic', 'Median_Basic', 'P75_Basic', 
-                          'P25_Gross', 'Median_Gross', 'P75_Gross']
-            display_df = occ_df[display_cols].copy()
-            
-            # Format wage columns
-            wage_cols = display_cols[1:]
-            for col in wage_cols:
-                display_df[col] = display_df[col].apply(
-                    lambda x: f"${x:,.0f}" if pd.notna(x) else "N/A"
-                )
-            
-            st.dataframe(display_df, use_container_width=True, hide_index=True)
-    
-    # Download section
-    st.markdown("## 💾 Download Salary Data")
-    
-    # Responsive download columns - will stack on mobile via CSS
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # CSV download
-        if st.button("📥 Download Data as CSV", use_container_width=True):
-            csv_data = []
+        # Responsive main content area
+        # Use container to control responsive behavior
+        chart_container = st.container()
+        insights_container = st.container()
+        
+        # On desktop: side-by-side, on mobile: stacked
+        # Create responsive columns based on screen size via CSS
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            # Display chart
+            fig = create_wage_chart(data_list, wage_type, comparison_mode)
+            st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            # Key insights
+            st.subheader("📊 Key Insights")
+        
+            # Latest year data
+            latest_year = df['Year'].max()
+        
             for occupation, occ_df in data_list:
-                temp_df = occ_df.copy()
-                temp_df['Occupation'] = occupation
-                csv_data.append(temp_df)
+                if comparison_mode and len(data_list) > 1:
+                    st.markdown(f"**{occupation}**")
             
-            combined_csv = pd.concat(csv_data)
-            csv_buffer = io.StringIO()
-            combined_csv.to_csv(csv_buffer, index=False)
+                latest_data = occ_df[occ_df['Year'] == latest_year]
             
-            st.download_button(
-                label="Click to Download CSV",
-                data=csv_buffer.getvalue(),
-                file_name=f"wage_data_{selected_industry.replace(' ', '_')}_{wage_type}.csv",
-                mime="text/csv"
-            )
-    
-    with col2:
-        # Chart download
-        if st.button("📸 Download Chart as PNG", use_container_width=True):
-            # Convert plotly figure to PNG
-            img_bytes = fig.to_image(format="png", width=1200, height=600, scale=2)
+                if not latest_data.empty:
+                    wage_suffix = '_Basic' if wage_type == 'Basic' else '_Gross'
+                
+                    # Wage gap indicator
+                    p75 = latest_data[f'P75{wage_suffix}'].iloc[0]
+                    p25 = latest_data[f'P25{wage_suffix}'].iloc[0]
+                    median = latest_data[f'Median{wage_suffix}'].iloc[0]
+                
+                    if pd.notna(p75) and pd.notna(p25):
+                        wage_gap = p75 - p25
+                        st.metric(
+                            f"Wage Gap ({latest_year})",
+                            f"${wage_gap:,.0f}",
+                            help="Difference between 75th and 25th percentile"
+                        )
+                
+                    if pd.notna(median):
+                        st.metric(
+                            f"Median ({latest_year})",
+                            f"${median:,.0f}"
+                        )
             
-            st.download_button(
-                label="Click to Download PNG",
-                data=img_bytes,
-                file_name=f"wage_chart_{selected_industry.replace(' ', '_')}_{wage_type}.png",
-                mime="image/png"
-            )
+                if comparison_mode and len(data_list) > 1:
+                    st.markdown("---")
     
-    # Support Section
-    st.markdown("""
-    <div class="support-section">
-        <h2>☕ Support This Project</h2>
-        <p>If you find these tools helpful, consider buying me a coffee!</p>
-        <a href="https://buymeacoffee.com/adrian_goh" target="_blank" class="coffee-button">
-            ☕ Buy Me a Coffee
-        </a>
-    </div>
-    """, unsafe_allow_html=True)
+        # Year-over-year growth section
+        st.markdown("## 📈 Year-over-Year Salary Growth Rates")
     
-    # SEO Footer with navigation links for AdSense compliance
-    st.markdown("---")
-    st.markdown("""
-    <footer style="text-align: center; padding: 2rem 0; color: #666;">
-        <nav style="margin-bottom: 1rem;">
-            <a href="https://singaporewage.com" style="margin: 0 1rem;">Home</a>
-            <a href="https://singaporewage.com/privacy" style="margin: 0 1rem;">Privacy Policy</a>
-            <a href="https://singaporewage.com/terms" style="margin: 0 1rem;">Terms of Service</a>
-            <a href="https://singaporewage.com/about" style="margin: 0 1rem;">About Us</a>
-            <a href="https://singaporewage.com/contact" style="margin: 0 1rem;">Contact</a>
-        </nav>
-        <p style="margin: 0.5rem 0;">
-            Data Source: Official Singapore Government Statistics (2021-2024)
-        </p>
-        <p style="margin: 0.5rem 0;">
-            © 2024 Singapore Wage Insights. All rights reserved.
-        </p>
-        <p style="margin: 0.5rem 0; font-size: 0.8rem;">
-            Singapore Wage Insights is an independent platform and is not affiliated with any government agency.
-        </p>
-    </footer>
-    """, unsafe_allow_html=True)
+        growth_tabs = st.tabs([occ for occ, _ in data_list])
+    
+        for idx, (occupation, occ_df) in enumerate(data_list):
+            with growth_tabs[idx]:
+                growth_df = calculate_yoy_growth(occ_df)
+            
+                if growth_df is not None and not growth_df.empty:
+                    # Format the dataframe for display
+                    display_df = growth_df.copy()
+                    for col in ['Basic Wage Growth (%)', 'Gross Wage Growth (%)']:
+                        display_df[col] = display_df[col].apply(
+                            lambda x: f"{x:.1f}%" if pd.notna(x) else "N/A"
+                        )
+                
+                    st.dataframe(display_df, use_container_width=True, hide_index=True)
+                else:
+                    st.info("Insufficient data for growth calculation")
+    
+        # Data table section
+        st.markdown("## 📋 Detailed Wage Data Table")
+    
+        data_tabs = st.tabs([occ for occ, _ in data_list])
+    
+        for idx, (occupation, occ_df) in enumerate(data_list):
+            with data_tabs[idx]:
+                # Prepare display dataframe
+                display_cols = ['Year', 'P25_Basic', 'Median_Basic', 'P75_Basic', 
+                              'P25_Gross', 'Median_Gross', 'P75_Gross']
+                display_df = occ_df[display_cols].copy()
+            
+                # Format wage columns
+                wage_cols = display_cols[1:]
+                for col in wage_cols:
+                    display_df[col] = display_df[col].apply(
+                        lambda x: f"${x:,.0f}" if pd.notna(x) else "N/A"
+                    )
+            
+                st.dataframe(display_df, use_container_width=True, hide_index=True)
+    
+        # Download section
+        st.markdown("## 💾 Download Salary Data")
+    
+        # Responsive download columns - will stack on mobile via CSS
+        col1, col2 = st.columns(2)
+    
+        with col1:
+            # CSV download
+            if st.button("📥 Download Data as CSV", use_container_width=True):
+                csv_data = []
+                for occupation, occ_df in data_list:
+                    temp_df = occ_df.copy()
+                    temp_df['Occupation'] = occupation
+                    csv_data.append(temp_df)
+            
+                combined_csv = pd.concat(csv_data)
+                csv_buffer = io.StringIO()
+                combined_csv.to_csv(csv_buffer, index=False)
+            
+                st.download_button(
+                    label="Click to Download CSV",
+                    data=csv_buffer.getvalue(),
+                    file_name=f"wage_data_{selected_industry.replace(' ', '_')}_{wage_type}.csv",
+                    mime="text/csv"
+                )
+    
+        with col2:
+            # Chart download
+            if st.button("📸 Download Chart as PNG", use_container_width=True):
+                # Convert plotly figure to PNG
+                img_bytes = fig.to_image(format="png", width=1200, height=600, scale=2)
+            
+                st.download_button(
+                    label="Click to Download PNG",
+                    data=img_bytes,
+                    file_name=f"wage_chart_{selected_industry.replace(' ', '_')}_{wage_type}.png",
+                    mime="image/png"
+                )
+    
+        # Support Section
+        st.markdown("""
+        <div class="support-section">
+            <h2>☕ Support This Project</h2>
+            <p>If you find these tools helpful, consider buying me a coffee!</p>
+            <a href="https://buymeacoffee.com/adrian_goh" target="_blank" class="coffee-button">
+                ☕ Buy Me a Coffee
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
+    
+        # SEO Footer with navigation links for AdSense compliance
+        st.markdown("---")
+        st.markdown("""
+        <footer style="text-align: center; padding: 2rem 0; color: #666;">
+            <nav style="margin-bottom: 1rem;">
+                <a href="https://singaporewage.com" style="margin: 0 1rem;">Home</a>
+                <a href="https://singaporewage.com/privacy" style="margin: 0 1rem;">Privacy Policy</a>
+                <a href="https://singaporewage.com/terms" style="margin: 0 1rem;">Terms of Service</a>
+                <a href="https://singaporewage.com/about" style="margin: 0 1rem;">About Us</a>
+                <a href="https://singaporewage.com/contact" style="margin: 0 1rem;">Contact</a>
+            </nav>
+            <p style="margin: 0.5rem 0;">
+                Data Source: Official Singapore Government Statistics (2021-2024)
+            </p>
+            <p style="margin: 0.5rem 0;">
+                © 2024 Singapore Wage Insights. All rights reserved.
+            </p>
+            <p style="margin: 0.5rem 0; font-size: 0.8rem;">
+                Singapore Wage Insights is an independent platform and is not affiliated with any government agency.
+            </p>
+        </footer>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
