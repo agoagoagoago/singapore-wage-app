@@ -850,14 +850,14 @@ def show_recent_searches():
                 st.markdown("**👨‍💼 Recent Occupations**")
                 for idx, search in enumerate(occupation_searches[:10]):  # Show top 10
                     display_text = search['value'][:50] + ('...' if len(search['value']) > 50 else '')
-                    st.markdown(f"• {display_text} *({search['relative_time']})*")
+                    st.markdown(f"• {display_text}")
         
         with col2:
             if industry_searches:
                 st.markdown("**🏢 Recent Industries**")
                 for idx, search in enumerate(industry_searches[:10]):  # Show top 10
                     display_text = search['value'][:50] + ('...' if len(search['value']) > 50 else '')
-                    st.markdown(f"• {display_text} *({search['relative_time']})*")
+                    st.markdown(f"• {display_text}")
     
     st.markdown("---")
 
