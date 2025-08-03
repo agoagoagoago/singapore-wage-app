@@ -120,10 +120,16 @@ st.markdown("""
 ## 3. Data Accuracy and Disclaimers
 
 ### 3.1 Information Accuracy
+""")
+
+# Warning box for data accuracy
+st.markdown("""
 <div class="warning-box">
     <strong>⚠️ Important Disclaimer:</strong> While we strive for accuracy, all wage data is provided "as is" based on available government statistics. We make no guarantees about the completeness, accuracy, or timeliness of the information.
 </div>
+""", unsafe_allow_html=True)
 
+st.markdown("""
 ### 3.2 No Financial or Career Advice
 The Service does not provide:
 - Personal financial advice
@@ -254,10 +260,16 @@ st.markdown("""
 ## 8. Limitation of Liability
 
 ### 8.1 Disclaimer of Warranties
+""")
+
+# Warning box for warranty disclaimer
+st.markdown("""
 <div class="warning-box">
     <strong>⚠️ Important:</strong> THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
 </div>
+""", unsafe_allow_html=True)
 
+st.markdown("""
 ### 8.2 Limitation of Damages
 To the fullest extent permitted by law, Singapore Wage Insights shall not be liable for:
 
