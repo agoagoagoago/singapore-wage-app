@@ -20,9 +20,21 @@ st.set_page_config(
     }
 )
 
-# Add Fathom Analytics to head
+# Add Fathom Analytics
 st.components.v1.html("""
-<script src="https://cdn.usefathom.com/script.js" data-site="PXWBXBYI" defer></script>
+<script>
+(function(f, a, t, h, o, m){
+    a[h]=a[h]||function(){
+        (a[h].q=a[h].q||[]).push(arguments)
+    };
+    o=f.createElement('script'),
+    m=f.getElementsByTagName('script')[0];
+    o.async=1; o.src=t; o.id='fathom-script';
+    m.parentNode.insertBefore(o,m)
+})(document, window, 'https://cdn.usefathom.com/script.js', 'fathom');
+fathom('set', 'siteId', 'PXWBXBYI');
+fathom('trackPageview');
+</script>
 """, height=0)
 
 # SEO Meta Tags and Structured Data
