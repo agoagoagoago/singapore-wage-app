@@ -142,16 +142,7 @@ st.markdown("""
 ### 3.1 No Sale of Personal Information
 We do not sell, rent, or trade your personal information to third parties.
 
-### 3.2 Service Providers
-We work with the following third-party services:
-
-- **Render.com:** Website hosting and infrastructure
-- **Streamlit:** Application framework (data processed locally)
-- **GitHub:** Code repository (no user data stored)
-
-These providers may have access to technical data necessary to provide their services but are contractually bound to protect your information.
-
-### 3.3 Legal Requirements
+### 3.2 Legal Requirements
 We may disclose information if required by law or to:
 - Comply with legal obligations
 - Protect our rights and property
