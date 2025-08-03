@@ -72,30 +72,45 @@ class SimpleAnalytics:
     
     def get_recent_searches(self, limit=20):
         """Get recent searches with relative timestamps."""
-        searches = self.data.get("search_history", [])
-        
-        # Add relative time formatting
-        for search in searches:
-            try:
-                timestamp = datetime.fromisoformat(search["timestamp"])
-                now = datetime.now()
-                diff = now - timestamp
-                
-                if diff.total_seconds() < 60:
-                    search["relative_time"] = "Just now"
-                elif diff.total_seconds() < 3600:
-                    minutes = int(diff.total_seconds() / 60)
-                    search["relative_time"] = f"{minutes}m ago"
-                elif diff.total_seconds() < 86400:
-                    hours = int(diff.total_seconds() / 3600)
-                    search["relative_time"] = f"{hours}h ago"
-                else:
-                    days = int(diff.total_seconds() / 86400)
-                    search["relative_time"] = f"{days}d ago"
-            except:
-                search["relative_time"] = "Recently"
-        
-        return searches[-limit:][::-1]  # Return last N searches, newest first
+        try:
+            searches = self.data.get("search_history", [])
+            
+            # Filter out invalid searches and add relative time formatting
+            valid_searches = []
+            for search in searches:
+                try:
+                    # Ensure search has required fields
+                    if not all(key in search for key in ["type", "value", "timestamp"]):
+                        continue
+                    
+                    # Skip empty or placeholder values
+                    if not search["value"] or search["value"] == "-- Select an occupation --":
+                        continue
+                    
+                    timestamp = datetime.fromisoformat(search["timestamp"])
+                    now = datetime.now()
+                    diff = now - timestamp
+                    
+                    if diff.total_seconds() < 60:
+                        search["relative_time"] = "Just now"
+                    elif diff.total_seconds() < 3600:
+                        minutes = int(diff.total_seconds() / 60)
+                        search["relative_time"] = f"{minutes}m ago"
+                    elif diff.total_seconds() < 86400:
+                        hours = int(diff.total_seconds() / 3600)
+                        search["relative_time"] = f"{hours}h ago"
+                    else:
+                        days = int(diff.total_seconds() / 86400)
+                        search["relative_time"] = f"{days}d ago"
+                    
+                    valid_searches.append(search)
+                except:
+                    # Skip invalid search entries
+                    continue
+            
+            return valid_searches[-limit:][::-1]  # Return last N searches, newest first
+        except:
+            return []  # Return empty list if any error occurs
 
 # Configure page
 st.set_page_config(
@@ -808,10 +823,14 @@ def show_analytics_dashboard():
 
 def show_recent_searches():
     """Display recent searches section."""
-    analytics = SimpleAnalytics()
-    recent_searches = analytics.get_recent_searches()
-    
-    if not recent_searches:
+    try:
+        analytics = SimpleAnalytics()
+        recent_searches = analytics.get_recent_searches()
+        
+        if not recent_searches:
+            return
+    except:
+        # If there's any error loading recent searches, silently skip this section
         return
     
     # Add custom CSS for search buttons
@@ -848,34 +867,40 @@ def show_recent_searches():
         with col1:
             if occupation_searches:
                 st.markdown("**👨‍💼 Recent Occupations**")
-                for search in occupation_searches[:10]:  # Show top 10
-                    # Create a clickable button-like display
-                    search_key = f"search_occ_{search['value']}"
+                for idx, search in enumerate(occupation_searches[:10]):  # Show top 10
+                    # Create a unique key using index and hash of value
+                    search_key = f"search_occ_{idx}_{hash(search['value']) % 10000}"
+                    display_text = search['value'][:30] + ('...' if len(search['value']) > 30 else '')
+                    
                     if st.button(
-                        f"🔎 {search['value'][:30]}{'...' if len(search['value']) > 30 else ''}",
+                        f"🔎 {display_text}",
                         key=search_key,
                         help=f"Searched {search['relative_time']} - Click to select",
                         use_container_width=True
                     ):
                         # Store selection in session state for auto-population
-                        st.session_state.auto_select_occupation = search['value']
-                        st.rerun()
+                        if 'auto_select_occupation' not in st.session_state:
+                            st.session_state.auto_select_occupation = search['value']
+                            st.rerun()
         
         with col2:
             if industry_searches:
                 st.markdown("**🏢 Recent Industries**")
-                for search in industry_searches[:10]:  # Show top 10
-                    # Create a clickable button-like display
-                    search_key = f"search_ind_{search['value']}"
+                for idx, search in enumerate(industry_searches[:10]):  # Show top 10
+                    # Create a unique key using index and hash of value
+                    search_key = f"search_ind_{idx}_{hash(search['value']) % 10000}"
+                    display_text = search['value'][:30] + ('...' if len(search['value']) > 30 else '')
+                    
                     if st.button(
-                        f"🔎 {search['value'][:30]}{'...' if len(search['value']) > 30 else ''}",
+                        f"🔎 {display_text}",
                         key=search_key,
                         help=f"Searched {search['relative_time']} - Click to select",
                         use_container_width=True
                     ):
                         # Store selection in session state for auto-population
-                        st.session_state.auto_select_industry = search['value']
-                        st.rerun()
+                        if 'auto_select_industry' not in st.session_state:
+                            st.session_state.auto_select_industry = search['value']
+                            st.rerun()
     
     st.markdown("---")
 
