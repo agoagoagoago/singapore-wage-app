@@ -25,7 +25,7 @@ class SimpleAnalytics:
                     return json.load(f)
             except:
                 pass
-        return {"total_pageviews": 0, "counts": {}}
+        return {"total_pageviews": 0, "counts": {}, "search_history": []}
     
     def save_data(self):
         """Save analytics data to file."""
@@ -47,6 +47,55 @@ class SimpleAnalytics:
             key = f"{widget_name} - {value}"
         self.data["counts"][key] = self.data["counts"].get(key, 0) + 1
         self.save_data()
+    
+    def track_search(self, search_type, search_value):
+        """Track a search with timestamp."""
+        if not search_value or search_value == "-- Select an occupation --":
+            return
+        
+        search_entry = {
+            "type": search_type,  # "occupation" or "industry"
+            "value": search_value,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # Add to search history
+        if "search_history" not in self.data:
+            self.data["search_history"] = []
+        
+        self.data["search_history"].append(search_entry)
+        
+        # Keep only last 20 searches
+        self.data["search_history"] = self.data["search_history"][-20:]
+        
+        self.save_data()
+    
+    def get_recent_searches(self, limit=20):
+        """Get recent searches with relative timestamps."""
+        searches = self.data.get("search_history", [])
+        
+        # Add relative time formatting
+        for search in searches:
+            try:
+                timestamp = datetime.fromisoformat(search["timestamp"])
+                now = datetime.now()
+                diff = now - timestamp
+                
+                if diff.total_seconds() < 60:
+                    search["relative_time"] = "Just now"
+                elif diff.total_seconds() < 3600:
+                    minutes = int(diff.total_seconds() / 60)
+                    search["relative_time"] = f"{minutes}m ago"
+                elif diff.total_seconds() < 86400:
+                    hours = int(diff.total_seconds() / 3600)
+                    search["relative_time"] = f"{hours}h ago"
+                else:
+                    days = int(diff.total_seconds() / 86400)
+                    search["relative_time"] = f"{days}d ago"
+            except:
+                search["relative_time"] = "Recently"
+        
+        return searches[-limit:][::-1]  # Return last N searches, newest first
 
 # Configure page
 st.set_page_config(
@@ -757,6 +806,79 @@ def show_analytics_dashboard():
             mime="application/json"
         )
 
+def show_recent_searches():
+    """Display recent searches section."""
+    analytics = SimpleAnalytics()
+    recent_searches = analytics.get_recent_searches()
+    
+    if not recent_searches:
+        return
+    
+    # Add custom CSS for search buttons
+    st.markdown("""
+    <style>
+    .recent-search-button {
+        background: linear-gradient(90deg, #f8f9fa, #e9ecef);
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin: 4px 0;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .recent-search-button:hover {
+        background: linear-gradient(90deg, #e9ecef, #dee2e6);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("### 🔍 Recent Searches")
+    st.markdown("*See what others are exploring - click to try*")
+    
+    # Create a container for the searches
+    with st.container():
+        # Group searches by type for better display
+        occupation_searches = [s for s in recent_searches if s["type"] == "occupation"]
+        industry_searches = [s for s in recent_searches if s["type"] == "industry"]
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if occupation_searches:
+                st.markdown("**👨‍💼 Recent Occupations**")
+                for search in occupation_searches[:10]:  # Show top 10
+                    # Create a clickable button-like display
+                    search_key = f"search_occ_{search['value']}"
+                    if st.button(
+                        f"🔎 {search['value'][:30]}{'...' if len(search['value']) > 30 else ''}",
+                        key=search_key,
+                        help=f"Searched {search['relative_time']} - Click to select",
+                        use_container_width=True
+                    ):
+                        # Store selection in session state for auto-population
+                        st.session_state.auto_select_occupation = search['value']
+                        st.rerun()
+        
+        with col2:
+            if industry_searches:
+                st.markdown("**🏢 Recent Industries**")
+                for search in industry_searches[:10]:  # Show top 10
+                    # Create a clickable button-like display
+                    search_key = f"search_ind_{search['value']}"
+                    if st.button(
+                        f"🔎 {search['value'][:30]}{'...' if len(search['value']) > 30 else ''}",
+                        key=search_key,
+                        help=f"Searched {search['relative_time']} - Click to select",
+                        use_container_width=True
+                    ):
+                        # Store selection in session state for auto-population
+                        st.session_state.auto_select_industry = search['value']
+                        st.rerun()
+    
+    st.markdown("---")
+
 def main():
     # Initialize analytics
     analytics = SimpleAnalytics()
@@ -794,6 +916,9 @@ def main():
     with st.spinner("Loading wage data..."):
         df = load_data()
     
+    # Show recent searches section
+    show_recent_searches()
+    
     # Sidebar filters
     st.sidebar.header("🔍 Filters")
     
@@ -823,10 +948,20 @@ def main():
     else:
         # Single select with search
         occupations = ["-- Select an occupation --"] + get_unique_occupations(df)
+        
+        # Check for auto-selection from recent searches
+        default_index = 0
+        if "auto_select_occupation" in st.session_state:
+            auto_value = st.session_state.auto_select_occupation
+            if auto_value in occupations:
+                default_index = occupations.index(auto_value)
+            # Clear the auto-selection after use
+            del st.session_state.auto_select_occupation
+        
         selected_occupation = st.sidebar.selectbox(
             "Choose an occupation",
             options=occupations,
-            index=0,  # Start with placeholder selected
+            index=default_index,
             help="Type to search for occupations"
         )
         # Only proceed if actual occupation selected (not placeholder)
@@ -836,15 +971,27 @@ def main():
     for occupation in selected_occupations:
         if occupation and occupation != "-- Select an occupation --":
             analytics.track_widget("Choose an occupation", occupation)
+            analytics.track_search("occupation", occupation)
     
     # Industry selection
     industries = get_industries()
+    
+    # Check for auto-selection from recent searches
+    default_industry_index = 0
+    if "auto_select_industry" in st.session_state:
+        auto_value = st.session_state.auto_select_industry
+        if auto_value in industries:
+            default_industry_index = industries.index(auto_value)
+        # Clear the auto-selection after use
+        del st.session_state.auto_select_industry
+    
     selected_industry = st.sidebar.selectbox(
         "Select Industry",
         options=industries,
-        index=0
+        index=default_industry_index
     )
     analytics.track_widget("Select Industry", selected_industry)
+    analytics.track_search("industry", selected_industry)
     
     # Wage type toggle
     wage_type = st.sidebar.radio(
