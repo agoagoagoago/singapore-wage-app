@@ -1145,17 +1145,26 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # SEO Footer with navigation links for AdSense compliance
+    # Footer with internal navigation links
     st.markdown("---")
+    
+    # Footer navigation using Streamlit columns for better layout
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        st.page_link("app.py", label="🏠 Home", help="Return to main wage analysis")
+    with col2:
+        st.page_link("pages/privacy.py", label="🔒 Privacy Policy", help="View our privacy policy")
+    with col3:
+        st.page_link("pages/terms.py", label="📋 Terms of Service", help="View terms of service")
+    with col4:
+        st.page_link("pages/about.py", label="ℹ️ About Us", help="Learn about our platform")
+    with col5:
+        st.markdown('<a href="mailto:admin@singaporewage.com" style="color: #0066cc; text-decoration: none;">📧 Contact</a>', unsafe_allow_html=True)
+    
+    # Footer information
     st.markdown("""
-    <footer style="text-align: center; padding: 2rem 0; color: #666;">
-        <nav style="margin-bottom: 1rem;">
-            <a href="https://singaporewage.com" style="margin: 0 1rem;">Home</a>
-            <a href="https://singaporewage.com/privacy" style="margin: 0 1rem;">Privacy Policy</a>
-            <a href="https://singaporewage.com/terms" style="margin: 0 1rem;">Terms of Service</a>
-            <a href="https://singaporewage.com/about" style="margin: 0 1rem;">About Us</a>
-            <a href="https://singaporewage.com/contact" style="margin: 0 1rem;">Contact</a>
-        </nav>
+    <footer style="text-align: center; padding: 2rem 0 1rem 0; color: #666;">
         <p style="margin: 0.5rem 0;">
             Contact us: <a href="mailto:admin@singaporewage.com" style="color: #0066cc; text-decoration: none;">admin@singaporewage.com</a>
         </p>
