@@ -1149,18 +1149,16 @@ def main():
     st.markdown("---")
     
     # Footer navigation using Streamlit columns for better layout
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.page_link("app.py", label="🏠 Home", help="Return to main wage analysis")
+        st.page_link("app.py", label="app", help="Return to main wage analysis")
     with col2:
-        st.page_link("pages/privacy.py", label="🔒 Privacy Policy", help="View our privacy policy")
+        st.page_link("pages/about.py", label="about", help="Learn about our platform")
     with col3:
-        st.page_link("pages/terms.py", label="📋 Terms of Service", help="View terms of service")
+        st.page_link("pages/privacy.py", label="privacy", help="View our privacy policy")
     with col4:
-        st.page_link("pages/about.py", label="ℹ️ About Us", help="Learn about our platform")
-    with col5:
-        st.markdown('<a href="mailto:admin@singaporewage.com" style="color: #0066cc; text-decoration: none;">📧 Contact</a>', unsafe_allow_html=True)
+        st.page_link("pages/terms.py", label="terms", help="View terms of service")
     
     # Footer information
     st.markdown("""
