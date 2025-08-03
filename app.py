@@ -1168,9 +1168,6 @@ def main():
         <p style="margin: 0.5rem 0; font-size: 0.8rem;">
             Singapore Wage Insights is an independent platform and is not affiliated with any government agency.
         </p>
-        <p style="margin: 0.5rem 0; font-size: 0.7rem;">
-            <a href="?admin=true" style="color: #999; text-decoration: none;">📊</a>
-        </p>
     </footer>
     """, unsafe_allow_html=True)
 
