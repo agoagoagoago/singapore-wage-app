@@ -321,13 +321,18 @@ st.markdown("""
 ## ☕ Support Our Mission
 
 If you find Singapore Wage Insights valuable, consider supporting our work:
+""")
 
+# Buy Me a Coffee button
+st.markdown("""
 <div style="text-align: center; margin: 2rem 0;">
     <a href="https://buymeacoffee.com/adrian_goh" target="_blank" style="display: inline-block; background: linear-gradient(45deg, #f39c12, #e67e22); color: white; padding: 15px 30px; border-radius: 50px; text-decoration: none; font-weight: bold;">
         ☕ Buy Me a Coffee
     </a>
 </div>
+""", unsafe_allow_html=True)
 
+st.markdown("""
 Your support helps us:
 - Maintain and improve the platform
 - Add new features and data sources
