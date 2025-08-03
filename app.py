@@ -70,7 +70,7 @@ class SimpleAnalytics:
         
         self.save_data()
     
-    def get_recent_searches(self, limit=20):
+    def get_recent_searches(self, limit=10):
         """Get recent searches with relative timestamps."""
         try:
             searches = self.data.get("search_history", [])
@@ -825,7 +825,7 @@ def show_recent_searches():
     """Display recent searches section."""
     try:
         analytics = SimpleAnalytics()
-        recent_searches = analytics.get_recent_searches()
+        recent_searches = analytics.get_recent_searches(10)
         
         if not recent_searches:
             return
@@ -853,7 +853,7 @@ def show_recent_searches():
     </style>
     """, unsafe_allow_html=True)
     
-    st.markdown("### 🔍 Recent Searches")
+    st.markdown("### 🔍 Last 10 Searches")
     st.markdown("*See what others are exploring - click to try*")
     
     # Create a container for the searches
@@ -867,7 +867,7 @@ def show_recent_searches():
         with col1:
             if occupation_searches:
                 st.markdown("**👨‍💼 Recent Occupations**")
-                for idx, search in enumerate(occupation_searches[:10]):  # Show top 10
+                for idx, search in enumerate(occupation_searches[:5]):  # Show top 5
                     # Create a unique key using index and hash of value
                     search_key = f"search_occ_{idx}_{hash(search['value']) % 10000}"
                     display_text = search['value'][:30] + ('...' if len(search['value']) > 30 else '')
@@ -886,7 +886,7 @@ def show_recent_searches():
         with col2:
             if industry_searches:
                 st.markdown("**🏢 Recent Industries**")
-                for idx, search in enumerate(industry_searches[:10]):  # Show top 10
+                for idx, search in enumerate(industry_searches[:5]):  # Show top 5
                     # Create a unique key using index and hash of value
                     search_key = f"search_ind_{idx}_{hash(search['value']) % 10000}"
                     display_text = search['value'][:30] + ('...' if len(search['value']) > 30 else '')
