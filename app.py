@@ -932,9 +932,6 @@ def main():
         <h1>💰 Singapore Wage Insights - Comprehensive Salary Analysis</h1>
         <p class="lead">Explore wage trends across occupations and industries from 2021 to 2024. 
         Data sourced from official Singapore government statistics.</p>
-        <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
-            💬 Questions or feedback? Contact us at <a href="mailto:admin@singaporewage.com" style="color: #0066cc;">admin@singaporewage.com</a>
-        </p>
     </div>
     """, unsafe_allow_html=True)
     
