@@ -936,9 +936,6 @@ def main():
     # Show recent searches section
     show_recent_searches()
     
-    # Sidebar filters
-    st.sidebar.header("🔍 Filters")
-    
     # Occupation selection
     st.sidebar.subheader("Select Occupation")
     
