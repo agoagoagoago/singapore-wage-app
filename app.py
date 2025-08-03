@@ -1103,15 +1103,31 @@ def main():
         # Chart download
         if st.button("📸 Download Chart as PNG", use_container_width=True):
             analytics.track_widget("Download Chart as PNG")
-            # Convert plotly figure to PNG
-            img_bytes = fig.to_image(format="png", width=1200, height=600, scale=2)
-        
-            st.download_button(
-                label="Click to Download PNG",
-                data=img_bytes,
-                file_name=f"wage_chart_{selected_industry.replace(' ', '_')}_{wage_type}.png",
-                mime="image/png"
-            )
+            try:
+                # Convert plotly figure to PNG
+                img_bytes = fig.to_image(format="png", width=1200, height=600, scale=2)
+            
+                st.download_button(
+                    label="Click to Download PNG",
+                    data=img_bytes,
+                    file_name=f"wage_chart_{selected_industry.replace(' ', '_')}_{wage_type}.png",
+                    mime="image/png"
+                )
+            except Exception as e:
+                # Fallback: Offer HTML download instead
+                st.warning("PNG export is not available. Offering interactive HTML chart instead.")
+                
+                # Create HTML version of the chart
+                html_string = fig.to_html(include_plotlyjs='cdn')
+                
+                st.download_button(
+                    label="📊 Download Interactive HTML Chart",
+                    data=html_string,
+                    file_name=f"wage_chart_{selected_industry.replace(' ', '_')}_{wage_type}.html",
+                    mime="text/html"
+                )
+                
+                st.info("💡 The HTML chart is interactive and can be opened in any web browser. You can also take a screenshot of the chart above.")
     
     # Support Section
     st.markdown("""
