@@ -564,16 +564,13 @@ def calculate_yoy_growth(df):
     
     return pd.DataFrame(growth_data)
 
-def create_wage_chart(data_list, wage_type, comparison_mode=False):
+def create_wage_chart(data_list, wage_type):
     """Create interactive line chart for wage trends."""
     
     fig = go.Figure()
     
-    # Color palette for multiple occupations
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
-    
     for idx, (occupation, df) in enumerate(data_list):
-        color = colors[idx % len(colors)] if comparison_mode else '#1f77b4'
+        color = '#1f77b4'
         
         # Prepare data
         df_sorted = df.sort_values('Year')
@@ -588,7 +585,7 @@ def create_wage_chart(data_list, wage_type, comparison_mode=False):
             x=years,
             y=median_values,
             mode='lines+markers',
-            name=f'{occupation} - Median' if comparison_mode else 'Median',
+            name='Median',
             line=dict(color=color, width=3),
             marker=dict(size=8)
         ))
@@ -599,7 +596,7 @@ def create_wage_chart(data_list, wage_type, comparison_mode=False):
             x=years,
             y=p25_values,
             mode='lines+markers',
-            name=f'{occupation} - P25' if comparison_mode else '25th Percentile',
+            name='25th Percentile',
             line=dict(color=color, width=2, dash='dash'),
             marker=dict(size=6)
         ))
@@ -610,27 +607,24 @@ def create_wage_chart(data_list, wage_type, comparison_mode=False):
             x=years,
             y=p75_values,
             mode='lines+markers',
-            name=f'{occupation} - P75' if comparison_mode else '75th Percentile',
+            name='75th Percentile',
             line=dict(color=color, width=2, dash='dot'),
             marker=dict(size=6)
         ))
         
-        # Add wage range fill (only if not in comparison mode)
-        if not comparison_mode:
-            fig.add_trace(go.Scatter(
-                x=np.concatenate([years, years[::-1]]),
-                y=np.concatenate([p25_values, p75_values[::-1]]),
-                fill='toself',
-                fillcolor=f'rgba(31, 119, 180, 0.2)',
-                line=dict(color='rgba(255,255,255,0)'),
-                hoverinfo='skip',
-                showlegend=False
-            ))
+        # Add wage range fill
+        fig.add_trace(go.Scatter(
+            x=np.concatenate([years, years[::-1]]),
+            y=np.concatenate([p25_values, p75_values[::-1]]),
+            fill='toself',
+            fillcolor=f'rgba(31, 119, 180, 0.2)',
+            line=dict(color='rgba(255,255,255,0)'),
+            hoverinfo='skip',
+            showlegend=False
+        ))
     
     # Update layout
     title = f"{wage_type} Wage Trends"
-    if comparison_mode and len(data_list) > 1:
-        title += " - Comparison"
     
     fig.update_layout(
         title=title,
@@ -945,41 +939,20 @@ def main():
     # Sidebar filters
     st.sidebar.header("🔍 Filters")
     
-    # Comparison mode toggle
-    comparison_mode = st.sidebar.checkbox("Enable Comparison Mode", value=False)
-    if comparison_mode:
-        analytics.track_widget("Enable Comparison Mode", "true")
-        
     # Occupation selection
-    st.sidebar.subheader("Select Occupation(s)")
+    st.sidebar.subheader("Select Occupation")
     
-    if comparison_mode:
-        # Multi-select for comparison
-        search_term = st.sidebar.text_input("Search occupations", "")
-        filtered_occupations = filter_occupations(df, search_term)
-        
-        selected_occupations = st.sidebar.multiselect(
-            "Choose up to 3 occupations",
-            options=filtered_occupations,
-            max_selections=3,
-            help="Select occupations to compare"
-        )
-        
-        if not selected_occupations:
-            st.warning("Please select at least one occupation to view data.")
-            return
-    else:
-        # Single select with search
-        occupations = ["-- Select an occupation --"] + get_unique_occupations(df)
-        
-        selected_occupation = st.sidebar.selectbox(
-            "Choose an occupation",
-            options=occupations,
-            index=0,  # Start with placeholder selected
-            help="Type to search for occupations"
-        )
-        # Only proceed if actual occupation selected (not placeholder)
-        selected_occupations = [selected_occupation] if selected_occupation and selected_occupation != "-- Select an occupation --" else []
+    # Single select with search
+    occupations = ["-- Select an occupation --"] + get_unique_occupations(df)
+    
+    selected_occupation = st.sidebar.selectbox(
+        "Choose an occupation",
+        options=occupations,
+        index=0,  # Start with placeholder selected
+        help="Type to search for occupations"
+    )
+    # Only proceed if actual occupation selected (not placeholder)
+    selected_occupations = [selected_occupation] if selected_occupation and selected_occupation != "-- Select an occupation --" else []
     
     # Track occupation selections
     for occupation in selected_occupations:
@@ -1030,7 +1003,7 @@ def main():
     
     with col1:
         # Display chart
-        fig = create_wage_chart(data_list, wage_type, comparison_mode)
+        fig = create_wage_chart(data_list, wage_type)
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
@@ -1041,9 +1014,6 @@ def main():
         latest_year = df['Year'].max()
     
         for occupation, occ_df in data_list:
-            if comparison_mode and len(data_list) > 1:
-                st.markdown(f"**{occupation}**")
-        
             latest_data = occ_df[occ_df['Year'] == latest_year]
         
             if not latest_data.empty:
@@ -1067,9 +1037,6 @@ def main():
                         f"Median ({latest_year})",
                         f"${median:,.0f}"
                     )
-        
-            if comparison_mode and len(data_list) > 1:
-                st.markdown("---")
     
     # Year-over-year growth section
     st.markdown("## 📈 Year-over-Year Salary Growth Rates")
