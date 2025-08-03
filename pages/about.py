@@ -194,6 +194,10 @@ Our wage data comes exclusively from:
 - **Government Employment Reports:** Annual and quarterly wage publications
 
 ### Data Processing Approach
+""")
+
+# Feature box for methodology
+st.markdown("""
 <div class="feature-box">
     <h4>🔍 Our Methodology</h4>
     <ul>
@@ -203,7 +207,9 @@ Our wage data comes exclusively from:
         <li><strong>Transparency:</strong> Clear indication of data limitations and suppressed values</li>
     </ul>
 </div>
+""", unsafe_allow_html=True)
 
+st.markdown("""
 ### What We Provide
 - **Percentile Data:** 25th, 50th (median), and 75th percentile wages
 - **Basic vs. Gross Wages:** Distinction between basic salary and total compensation
