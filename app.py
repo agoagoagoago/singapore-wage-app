@@ -20,21 +20,24 @@ st.set_page_config(
     }
 )
 
-# Add Fathom Analytics
+# Add Fathom Analytics with full HTML structure
 st.components.v1.html("""
-<script>
-(function(f, a, t, h, o, m){
-    a[h]=a[h]||function(){
-        (a[h].q=a[h].q||[]).push(arguments)
-    };
-    o=f.createElement('script'),
-    m=f.getElementsByTagName('script')[0];
-    o.async=1; o.src=t; o.id='fathom-script';
-    m.parentNode.insertBefore(o,m)
-})(document, window, 'https://cdn.usefathom.com/script.js', 'fathom');
-fathom('set', 'siteId', 'PXWBXBYI');
-fathom('trackPageview');
-</script>
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.usefathom.com/script.js" data-site="PXWBXBYI" defer></script>
+</head>
+<body>
+    <script>
+        // Ensure Fathom loads even in iframe context
+        window.addEventListener('load', function() {
+            if (window.fathom) {
+                window.fathom('trackPageview');
+            }
+        });
+    </script>
+</body>
+</html>
 """, height=0)
 
 # SEO Meta Tags and Structured Data
