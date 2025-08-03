@@ -833,28 +833,9 @@ def show_recent_searches():
         # If there's any error loading recent searches, silently skip this section
         return
     
-    # Add custom CSS for search buttons
-    st.markdown("""
-    <style>
-    .recent-search-button {
-        background: linear-gradient(90deg, #f8f9fa, #e9ecef);
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 8px 12px;
-        margin: 4px 0;
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    .recent-search-button:hover {
-        background: linear-gradient(90deg, #e9ecef, #dee2e6);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    </style>
-    """, unsafe_allow_html=True)
     
     st.markdown("### 🔍 Last 10 Searches")
-    st.markdown("*See what others are exploring - click to try*")
+    st.markdown("*See what others are exploring*")
     
     # Create a container for the searches
     with st.container():
@@ -868,39 +849,15 @@ def show_recent_searches():
             if occupation_searches:
                 st.markdown("**👨‍💼 Recent Occupations**")
                 for idx, search in enumerate(occupation_searches[:10]):  # Show top 10
-                    # Create a unique key using index and hash of value
-                    search_key = f"search_occ_{idx}_{hash(search['value']) % 10000}"
-                    display_text = search['value'][:30] + ('...' if len(search['value']) > 30 else '')
-                    
-                    if st.button(
-                        f"🔎 {display_text}",
-                        key=search_key,
-                        help=f"Searched {search['relative_time']} - Click to select",
-                        use_container_width=True
-                    ):
-                        # Store selection in session state for auto-population
-                        if 'auto_select_occupation' not in st.session_state:
-                            st.session_state.auto_select_occupation = search['value']
-                            st.rerun()
+                    display_text = search['value'][:50] + ('...' if len(search['value']) > 50 else '')
+                    st.markdown(f"• {display_text} *({search['relative_time']})*")
         
         with col2:
             if industry_searches:
                 st.markdown("**🏢 Recent Industries**")
                 for idx, search in enumerate(industry_searches[:10]):  # Show top 10
-                    # Create a unique key using index and hash of value
-                    search_key = f"search_ind_{idx}_{hash(search['value']) % 10000}"
-                    display_text = search['value'][:30] + ('...' if len(search['value']) > 30 else '')
-                    
-                    if st.button(
-                        f"🔎 {display_text}",
-                        key=search_key,
-                        help=f"Searched {search['relative_time']} - Click to select",
-                        use_container_width=True
-                    ):
-                        # Store selection in session state for auto-population
-                        if 'auto_select_industry' not in st.session_state:
-                            st.session_state.auto_select_industry = search['value']
-                            st.rerun()
+                    display_text = search['value'][:50] + ('...' if len(search['value']) > 50 else '')
+                    st.markdown(f"• {display_text} *({search['relative_time']})*")
     
     st.markdown("---")
 
@@ -974,19 +931,10 @@ def main():
         # Single select with search
         occupations = ["-- Select an occupation --"] + get_unique_occupations(df)
         
-        # Check for auto-selection from recent searches
-        default_index = 0
-        if "auto_select_occupation" in st.session_state:
-            auto_value = st.session_state.auto_select_occupation
-            if auto_value in occupations:
-                default_index = occupations.index(auto_value)
-            # Clear the auto-selection after use
-            del st.session_state.auto_select_occupation
-        
         selected_occupation = st.sidebar.selectbox(
             "Choose an occupation",
             options=occupations,
-            index=default_index,
+            index=0,  # Start with placeholder selected
             help="Type to search for occupations"
         )
         # Only proceed if actual occupation selected (not placeholder)
@@ -1000,20 +948,10 @@ def main():
     
     # Industry selection
     industries = get_industries()
-    
-    # Check for auto-selection from recent searches
-    default_industry_index = 0
-    if "auto_select_industry" in st.session_state:
-        auto_value = st.session_state.auto_select_industry
-        if auto_value in industries:
-            default_industry_index = industries.index(auto_value)
-        # Clear the auto-selection after use
-        del st.session_state.auto_select_industry
-    
     selected_industry = st.sidebar.selectbox(
         "Select Industry",
         options=industries,
-        index=default_industry_index
+        index=0
     )
     analytics.track_widget("Select Industry", selected_industry)
     analytics.track_search("industry", selected_industry)
